@@ -1,10 +1,10 @@
-// app/page.js
 "use client"; // Only add this if you are using client-side features like useState or useEffect
 
 import { useState } from 'react';
 
 export default function Home() {
   const [file, setFile] = useState(null);
+  const [fileUrl, setFileUrl] = useState(""); // To store the URL of the uploaded file
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -35,7 +35,12 @@ export default function Home() {
     });
 
     const data = await res.json();
-    alert(`File uploaded! Access it at ${data.fileLink}`);
+    
+    if (data.success) {
+      setFileUrl(data.fileLink); // Set the URL of the uploaded file
+    } else {
+      alert('File upload failed!');
+    }
   };
 
   return (
@@ -45,6 +50,15 @@ export default function Home() {
         <input type="file" onChange={handleFileChange} accept="application/pdf,image/*" />
         <button type="submit">Upload</button>
       </form>
+
+      {fileUrl && (
+        <div>
+          <p>File uploaded successfully!</p>
+          <p>
+            Access it here: <a href={fileUrl} target="_blank" rel="noopener noreferrer">{fileUrl}</a>
+          </p>
+        </div>
+      )}
     </div>
   );
 }
