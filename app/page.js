@@ -5,6 +5,7 @@ import { useState } from 'react';
 export default function Page() {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(""); // To store the URL of the uploaded file
+  const [errorMessage, setErrorMessage] = useState(""); // To store error messages
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -29,17 +30,26 @@ export default function Page() {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.success) {
-      setFileUrl(data.fileLink); // Set the URL of the uploaded file
-    } else {
-      alert('File upload failed!');
+      if (res.ok) {
+        if (data.success) {
+          setFileUrl(data.fileLink); // Set the URL of the uploaded file
+          setErrorMessage(""); // Clear any previous error messages
+        } else {
+          setErrorMessage(data.message); // Show failure message
+        }
+      } else {
+        setErrorMessage('File upload failed. Please try again.');
+      }
+    } catch (error) {
+      setErrorMessage('An error occurred during file upload. Please try again.');
     }
   };
 
@@ -56,6 +66,8 @@ export default function Page() {
           />
           <button type="submit" style={styles.button}>Upload</button>
         </form>
+
+        {errorMessage && <div style={styles.error}>{errorMessage}</div>}
 
         {fileUrl && (
           <div style={styles.successMessage}>
@@ -110,12 +122,14 @@ const styles = {
     cursor: 'pointer',
     transition: 'background-color 0.3s',
   },
-  buttonHover: {
-    backgroundColor: '#e0a800',
-  },
   successMessage: {
     marginTop: '20px',
     color: '#FFD700',
+    fontSize: '14px',
+  },
+  error: {
+    marginTop: '20px',
+    color: 'red',
     fontSize: '14px',
   },
   link: {
